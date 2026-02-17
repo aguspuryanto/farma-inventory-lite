@@ -1,0 +1,7 @@
+{
+  "name": "Bumi Farma - Smart Pharmacy Inventory",
+  "description": "A comprehensive pharmacy management application focused on high-efficiency stock opname, automated purchase orders, and intelligent invoice processing.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
