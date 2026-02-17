@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Medicine, PurchaseOrder, Invoice, Supplier, ReturnRecord } from './types';
 import { INITIAL_MEDICINES } from './constants';
 import LoginPage from './components/LoginPage';
+import RegisterPage from './components/RegisterPage';
 import Dashboard from './components/Dashboard';
 import StockOpname from './components/StockOpname';
 import PurchaseOrderPage from './components/PurchaseOrderPage';
@@ -13,9 +14,11 @@ import SupplierManagement from './components/SupplierManagement';
 import ReturnsManagement from './components/ReturnsManagement';
 import Financials from './components/Financials';
 import Layout from './components/Layout';
+import { supabase } from './lib/supabase';
 
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [authView, setAuthView] = useState<'login' | 'register'>('login');
   const [currentView, setCurrentView] = useState<View>(View.Dashboard);
   const [medicines, setMedicines] = useState<Medicine[]>(INITIAL_MEDICINES);
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
@@ -26,21 +29,29 @@ const App: React.FC = () => {
   ]);
   const [returns, setReturns] = useState<ReturnRecord[]>([]);
 
-  // Simple auth check simulation
+  // Check auth session on mount
   useEffect(() => {
-    const auth = localStorage.getItem('pharmacy_auth');
-    if (auth === 'true') {
-      setIsLoggedIn(true);
-    }
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setIsLoggedIn(true);
+      }
+    };
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleLogin = () => {
-    localStorage.setItem('pharmacy_auth', 'true');
     setIsLoggedIn(true);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('pharmacy_auth');
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setIsLoggedIn(false);
   };
 
@@ -61,7 +72,6 @@ const App: React.FC = () => {
 
   const addInvoice = (invoice: Invoice) => {
     setInvoices(prev => [invoice, ...prev]);
-    // Update stock when invoice received
     setMedicines(prev => prev.map(m => {
       const item = invoice.items.find(i => i.medicineId === m.id);
       return item ? { ...m, systemStock: m.systemStock + item.quantity } : m;
@@ -75,11 +85,8 @@ const App: React.FC = () => {
 
   const addReturnRecord = (record: ReturnRecord) => {
     setReturns(prev => [record, ...prev]);
-    // Optionally update stock based on return type
     setMedicines(prev => prev.map(m => {
       if (m.id === record.medicineId) {
-        // If sales return (from customer), stock increases
-        // If purchase return (to supplier), stock decreases
         const modifier = record.type === 'Sales' ? 1 : -1;
         return { ...m, systemStock: Math.max(0, m.systemStock + (record.quantity * modifier)) };
       }
@@ -88,7 +95,15 @@ const App: React.FC = () => {
   };
 
   if (!isLoggedIn) {
-    return <LoginPage onLogin={handleLogin} />;
+    if (authView === 'register') {
+      return (
+        <RegisterPage 
+          onBackToLogin={() => setAuthView('login')} 
+          onRegisterSuccess={() => setAuthView('login')} 
+        />
+      );
+    }
+    return <LoginPage onLogin={handleLogin} onGoToRegister={() => setAuthView('register')} />;
   }
 
   return (

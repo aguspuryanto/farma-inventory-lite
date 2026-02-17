@@ -77,5 +77,6 @@ export enum View {
   Suppliers = 'suppliers',
   Returns = 'returns',
   Financials = 'financials',
-  Login = 'login'
+  Login = 'login',
+  Register = 'register'
 }
