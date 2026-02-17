@@ -13,12 +13,23 @@ export interface Medicine {
   barcode?: string;
 }
 
+export interface Supplier {
+  id: string;
+  name: string;
+  phone: string;
+  address: string;
+  email: string;
+}
+
 export interface PurchaseOrder {
   id: string;
   date: string;
-  supplier: string;
+  supplierId: string;
+  supplierName: string;
   items: POItem[];
   status: 'Draft' | 'Sent' | 'Received';
+  totalAmount: number;
+  isPaid: boolean;
 }
 
 export interface POItem {
@@ -26,6 +37,17 @@ export interface POItem {
   name: string;
   quantity: number;
   unit: string;
+}
+
+export interface ReturnRecord {
+  id: string;
+  date: string;
+  medicineId: string;
+  medicineName: string;
+  quantity: number;
+  type: 'Purchase' | 'Sales'; // Purchase (ke supplier), Sales (dari pelanggan)
+  reason: string;
+  status: 'Pending' | 'Completed';
 }
 
 export interface Invoice {
@@ -52,5 +74,8 @@ export enum View {
   InitialStock = 'initial-stock',
   PurchaseOrder = 'purchase-order',
   Invoices = 'invoices',
+  Suppliers = 'suppliers',
+  Returns = 'returns',
+  Financials = 'financials',
   Login = 'login'
 }

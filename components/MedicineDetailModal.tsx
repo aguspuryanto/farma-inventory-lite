@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { Medicine } from '../types';
 
 interface MedicineDetailModalProps {
@@ -8,13 +8,50 @@ interface MedicineDetailModalProps {
 }
 
 const MedicineDetailModal: React.FC<MedicineDetailModalProps> = ({ medicine, onClose }) => {
+  const printRef = useRef<HTMLDivElement>(null);
+
   if (!medicine) return null;
 
   const sellingPrice = Math.round((medicine.hna + medicine.ppn) * (1 + medicine.margin / 100));
 
+  const handlePrintBarcode = () => {
+    const printContent = document.getElementById('barcode-to-print');
+    if (!printContent) return;
+    
+    const windowUrl = 'about:blank';
+    const uniqueName = new Date();
+    const windowName = 'Print' + uniqueName.getTime();
+    const printWindow = window.open(windowUrl, windowName, 'left=50000,top=50000,width=0,height=0');
+    
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Cetak Barcode - ${medicine.name}</title>
+            <style>
+              @page { size: 40mm 20mm; margin: 0; }
+              body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; margin: 0; padding: 2px; }
+              .name { font-size: 8px; font-weight: bold; margin-bottom: 2px; text-align: center; }
+              .barcode-box { border: 1px solid black; padding: 4px; font-family: 'Libre Barcode 39', cursive; font-size: 24px; }
+              .code { font-size: 8px; margin-top: 2px; }
+            </style>
+          </head>
+          <body>
+            <div class="name">${medicine.name.toUpperCase()}</div>
+            <div class="barcode-box">|||||||||||||||||</div>
+            <div class="code">${medicine.barcode}</div>
+            <script>window.print(); window.close();</script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm overflow-y-auto">
+      <div className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200 my-8">
         {/* Header */}
         <div className="bg-emerald-600 p-6 text-white relative">
           <button 
@@ -45,6 +82,24 @@ const MedicineDetailModal: React.FC<MedicineDetailModalProps> = ({ medicine, onC
                 <InfoItem label="Satuan" value={medicine.unit} />
                 <InfoItem label="Terakhir Audit" value={medicine.lastStockOpname ? new Date(medicine.lastStockOpname).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Belum pernah'} />
               </div>
+            </div>
+
+            {/* Barcode Preview Placeholder */}
+            <div className="bg-slate-50 p-4 rounded-2xl border border-dashed border-slate-200 text-center">
+              <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Preview Barcode</p>
+              <div className="bg-white p-3 border border-slate-200 inline-block rounded">
+                <div className="h-8 w-32 bg-slate-100 flex items-center justify-center space-x-1 opacity-50">
+                   {[...Array(12)].map((_, i) => <div key={i} className={`h-full bg-slate-800 ${i % 3 === 0 ? 'w-1' : 'w-0.5'}`}></div>)}
+                </div>
+                <p className="text-[10px] font-mono mt-1 text-slate-600">{medicine.barcode}</p>
+              </div>
+              <button 
+                onClick={handlePrintBarcode}
+                className="mt-3 w-full py-1.5 bg-white border border-slate-200 text-xs font-bold text-slate-600 rounded-lg hover:bg-slate-50 transition-colors flex items-center justify-center space-x-2"
+              >
+                <span>🖨️</span>
+                <span>Cetak Label Barcode</span>
+              </button>
             </div>
           </div>
 

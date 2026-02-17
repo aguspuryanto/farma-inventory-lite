@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { View, Medicine, PurchaseOrder, Invoice } from './types';
+import { View, Medicine, PurchaseOrder, Invoice, Supplier, ReturnRecord } from './types';
 import { INITIAL_MEDICINES } from './constants';
 import LoginPage from './components/LoginPage';
 import Dashboard from './components/Dashboard';
@@ -9,6 +9,9 @@ import PurchaseOrderPage from './components/PurchaseOrderPage';
 import InvoicePage from './components/InvoicePage';
 import InitialStock from './components/InitialStock';
 import MedicineList from './components/MedicineList';
+import SupplierManagement from './components/SupplierManagement';
+import ReturnsManagement from './components/ReturnsManagement';
+import Financials from './components/Financials';
 import Layout from './components/Layout';
 
 const App: React.FC = () => {
@@ -17,6 +20,11 @@ const App: React.FC = () => {
   const [medicines, setMedicines] = useState<Medicine[]>(INITIAL_MEDICINES);
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([
+    { id: 'SUP-001', name: 'PBF Bina Sanata', phone: '021-889900', email: 'sales@binasanata.com', address: 'Jl. Industri No. 45, Jakarta' },
+    { id: 'SUP-002', name: 'Kimia Farma Trading', phone: '021-112233', email: 'order@kftd.co.id', address: 'Jl. Budi Utomo No. 1, Jakarta' }
+  ]);
+  const [returns, setReturns] = useState<ReturnRecord[]>([]);
 
   // Simple auth check simulation
   useEffect(() => {
@@ -61,6 +69,24 @@ const App: React.FC = () => {
     setCurrentView(View.Dashboard);
   };
 
+  const addSupplier = (sup: Supplier) => {
+    setSuppliers(prev => [sup, ...prev]);
+  };
+
+  const addReturnRecord = (record: ReturnRecord) => {
+    setReturns(prev => [record, ...prev]);
+    // Optionally update stock based on return type
+    setMedicines(prev => prev.map(m => {
+      if (m.id === record.medicineId) {
+        // If sales return (from customer), stock increases
+        // If purchase return (to supplier), stock decreases
+        const modifier = record.type === 'Sales' ? 1 : -1;
+        return { ...m, systemStock: Math.max(0, m.systemStock + (record.quantity * modifier)) };
+      }
+      return m;
+    }));
+  };
+
   if (!isLoggedIn) {
     return <LoginPage onLogin={handleLogin} />;
   }
@@ -78,6 +104,9 @@ const App: React.FC = () => {
       {currentView === View.MedicineList && (
         <MedicineList medicines={medicines} />
       )}
+      {currentView === View.Suppliers && (
+        <SupplierManagement suppliers={suppliers} onAdd={addSupplier} />
+      )}
       {currentView === View.InitialStock && (
         <InitialStock onAdd={addMedicine} />
       )}
@@ -89,6 +118,12 @@ const App: React.FC = () => {
       )}
       {currentView === View.Invoices && (
         <InvoicePage purchaseOrders={purchaseOrders} medicines={medicines} onSubmit={addInvoice} />
+      )}
+      {currentView === View.Returns && (
+        <ReturnsManagement medicines={medicines} returns={returns} onAdd={addReturnRecord} />
+      )}
+      {currentView === View.Financials && (
+        <Financials purchaseOrders={purchaseOrders} />
       )}
     </Layout>
   );

@@ -29,12 +29,25 @@ const PurchaseOrderPage: React.FC<PurchaseOrderProps> = ({ medicines, onSubmit }
   const handleSubmit = () => {
     if (!supplier || selectedItems.length === 0) return;
     
+    // Calculate total amount based on medicine HNA + PPN
+    const totalAmount = selectedItems.reduce((sum, item) => {
+      const med = medicines.find(m => m.id === item.medicineId);
+      if (med) {
+        return sum + ((med.hna + med.ppn) * item.quantity);
+      }
+      return sum;
+    }, 0);
+
+    // Create a new PurchaseOrder object conforming to the PurchaseOrder interface
     const newPO: PurchaseOrder = {
       id: `PO-${Date.now()}`,
       date: new Date().toLocaleDateString('id-ID'),
-      supplier,
+      supplierId: `SUP-${Date.now()}`, // Temporary supplier ID mapping
+      supplierName: supplier,
       items: selectedItems,
-      status: 'Sent'
+      status: 'Sent',
+      totalAmount: totalAmount,
+      isPaid: false
     };
     
     onSubmit(newPO);

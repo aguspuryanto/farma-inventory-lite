@@ -74,7 +74,7 @@ const InvoicePage: React.FC<InvoicePageProps> = ({ purchaseOrders, medicines, on
               >
                 <option value="">-- Pilih Nomor Surat Pesanan --</option>
                 {purchaseOrders.map(po => (
-                  <option key={po.id} value={po.id}>{po.id} ({po.supplier})</option>
+                  <option key={po.id} value={po.id}>{po.id} ({po.supplierName})</option>
                 ))}
               </select>
             </div>
