@@ -12,6 +12,8 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children, currentView, setCurrentView, onLogout }) => {
   const menuItems = [
     { id: View.Dashboard, label: 'Dashboard', icon: '📊' },
+    { id: View.MedicineList, label: 'Daftar Obat', icon: '💊' },
+    { id: View.InitialStock, label: 'Tambah Baru', icon: '📦' },
     { id: View.StockOpname, label: 'Stock Opname', icon: '📋' },
     { id: View.PurchaseOrder, label: 'Surat Pesanan', icon: '✍️' },
     { id: View.Invoices, label: 'Input Faktur', icon: '🧾' },

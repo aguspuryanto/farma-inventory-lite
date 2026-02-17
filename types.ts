@@ -47,7 +47,9 @@ export interface InvoiceItem {
 
 export enum View {
   Dashboard = 'dashboard',
+  MedicineList = 'medicine-list',
   StockOpname = 'stock-opname',
+  InitialStock = 'initial-stock',
   PurchaseOrder = 'purchase-order',
   Invoices = 'invoices',
   Login = 'login'

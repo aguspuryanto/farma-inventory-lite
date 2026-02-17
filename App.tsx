@@ -7,6 +7,8 @@ import Dashboard from './components/Dashboard';
 import StockOpname from './components/StockOpname';
 import PurchaseOrderPage from './components/PurchaseOrderPage';
 import InvoicePage from './components/InvoicePage';
+import InitialStock from './components/InitialStock';
+import MedicineList from './components/MedicineList';
 import Layout from './components/Layout';
 
 const App: React.FC = () => {
@@ -40,6 +42,10 @@ const App: React.FC = () => {
     ));
   };
 
+  const addMedicine = (newMed: Medicine) => {
+    setMedicines(prev => [...prev, newMed]);
+  };
+
   const addPurchaseOrder = (po: PurchaseOrder) => {
     setPurchaseOrders(prev => [po, ...prev]);
     setCurrentView(View.Dashboard);
@@ -68,6 +74,12 @@ const App: React.FC = () => {
           invoices={invoices} 
           setCurrentView={setCurrentView}
         />
+      )}
+      {currentView === View.MedicineList && (
+        <MedicineList medicines={medicines} />
+      )}
+      {currentView === View.InitialStock && (
+        <InitialStock onAdd={addMedicine} />
       )}
       {currentView === View.StockOpname && (
         <StockOpname medicines={medicines} onUpdate={updateMedicineStock} />
